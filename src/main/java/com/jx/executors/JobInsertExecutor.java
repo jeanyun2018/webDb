@@ -42,12 +42,12 @@ public class JobInsertExecutor implements IJobInsertExecutor {
 		if (jobInsert == null) {
 			return;
 		}
-		jobInsert.setQuery(QueryUtil.preparationParameters(jobInsert.getQuery(), params));
-		Object[] args = QueryUtil.preparationParametersList(jobInsert, params);
-		showBackInfo.show("执行新增语句：" + jobInsert.getName() + "SQL:" + jobInsert.getQuery());
-		log.info("执行新增语句： {}", jobInsert.getQuery());
+		String insertQuery = QueryUtil.preparationParameters(jobInsert.getQuery(), params);
+		Object[] args = QueryUtil.preparationParametersList(insertQuery, params);
+		showBackInfo.show("执行新增语句：" + jobInsert.getName() + "SQL:" + insertQuery);
+		log.info("执行新增语句： {}，参数：{}", insertQuery, args);
 		try {
-			int res = runner.update(dBConnections.getMainConnection(), jobInsert.getQuery(), args);
+			int res = runner.update(dBConnections.getMainConnection(), insertQuery, args);
 			if (res > 0) {
 				showInfoRes(true, jobInsert);
 				toCallNext(jobInsert.getNext());

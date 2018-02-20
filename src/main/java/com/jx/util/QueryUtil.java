@@ -6,8 +6,6 @@ import java.util.Map;
 
 import org.slf4j.LoggerFactory;
 
-import com.jx.bean.JobInsert;
-
 /**
  * 运行时匹配工具类 sql语句中的参数，动态的替换到Job的query字段的占位符中
  * 
@@ -20,47 +18,58 @@ public class QueryUtil {
 	private QueryUtil() {
 	};
 
+	/**
+	 * 将需要执行的sql语句进行运行时匹配 将语句中的#包裹的参数，进行替换。
+	 * 
+	 * @param query
+	 * @param params
+	 * @return
+	 */
 	public static String preparationParameters(String query, Map<String, Object> params) {
 		if (params == null) {
 			return query;
 		}
-		if (query.indexOf("#") != -1) {
+		String runquery = query;
+		if (runquery.indexOf("#") != -1) {
 			debugLogger.info("开始进行运行时匹配");
-			debugLogger.info("匹配前结果：{}", query);
+			debugLogger.info("匹配前结果：{}", runquery);
 			int index = 0;
-			for (String str : query.split("#")) {
+			for (String str : runquery.split("#")) {
 				index++;
 				if (index % 2 == 0) {
 					if (params.get(str) != null) {
-						query = query.replaceFirst("#" + str + "#", params.get(str).toString());
+						runquery = runquery.replaceFirst("#" + str + "#", params.get(str).toString());
 					}
 				}
 			}
-
-			debugLogger.info("匹配后结果：{}", query);
+			debugLogger.info("匹配后结果：{}", runquery);
 		}
-
-		return query;
+		return runquery;
 	}
 
-	public static Object[] preparationParametersList(JobInsert jobInsert, Map<String, Object> params) {
+	/**
+	 * 将语句中用!包裹的参数，尝试去参数params匹配。 如果匹配成功则，将!包裹的内容用占位符？进行替换。 返回Object列表
+	 * 
+	 * @param query
+	 * @param params
+	 * @return
+	 */
+	public static Object[] preparationParametersList(String query, Map<String, Object> params) {
 		if (params == null) {
 			return null;
 		}
-		String query = jobInsert.getQuery();
-		if (query.indexOf("#") != -1) {
+		if (query.indexOf("!") != -1) {
 			List<Object> objects = new ArrayList<Object>();
 			int index = 0;
-			for (String str : query.split("#")) {
+			for (String str : query.split("!")) {
 				index++;
 				if (index % 2 == 0) {
 					if (params.get(str) != null) {
-						objects.add(params.get("str"));
-						query = query.replaceFirst("#" + str + "#", "?");
+						objects.add(params.get(str));
+						query = query.replaceFirst("!" + str + "!", "?");
 					}
 				}
 			}
-			jobInsert.setQuery(query);
 			return objects.toArray();
 		} else
 			return null;
